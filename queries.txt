@@ -1,1 +1,199 @@
+EXPERIMENT – 1
+(Basic Collection Creation & Dropping)
+
+🔹 Aim
+To create and drop a collection without constraints.
+🔹 Query
+use lmsDB
+db.createCollection("courses")
+🔹 O/P
+{ ok: 1 }
+show collections
+🔹 O/P
+courses
+db.courses.drop()
+🔹 O/P
+true
+🔹 Result
+The collection courses was successfully created and dropped.
+
+EXPERIMENT – 2
+(Collection with Required Fields & Data Types)
+
+🔹 Aim
+To enforce required fields using schema validation.
+
+🔹 Query
+
+db.createCollection("courses", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["courseName", "instructor", "duration"],
+      properties: {
+        courseName: { bsonType: "string" },
+        instructor: { bsonType: "string" },
+        duration: { bsonType: "int" },
+        isActive: { bsonType: "bool" }
+      }
+    }
+  }
+})
+
+🔹 Valid Insert
+
+db.courses.insertOne({
+  courseName: "MongoDB Basics",
+  instructor: "Dr. Sharma",
+  duration: 30,
+  isActive: true
+})
+
+🔹 O/P
+
+{ acknowledged: true, insertedId: ObjectId("...") }
+
+🔹 Invalid Insert (Missing field)
+
+db.courses.insertOne({
+  courseName: "Java Programming",
+  duration: 45
+})
+
+🔹 O/P
+
+MongoServerError: Document failed validation
+
+🔹 Result
+The collection enforces required fields. Invalid documents are rejected.
+
+EXPERIMENT – 3
+(Advanced Validation – Enum, Range, Pattern)
+
+🔹 Aim
+To apply advanced validation rules.
+
+🔹 Query
+
+db.createCollection("enrollments", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["studentId", "name", "progress", "courseLevel"],
+      properties: {
+        studentId: {
+          bsonType: "string",
+          pattern: "^STU[0-9]{3}$"
+        },
+        name: {
+          bsonType: "string",
+          minLength: 3
+        },
+        progress: {
+          bsonType: "double",
+          minimum: 0,
+          maximum: 100
+        },
+        courseLevel: {
+          enum: ["Beginner", "Intermediate", "Advanced"]
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error"
+})
+
+🔹 Valid Insert
+
+db.enrollments.insertOne({
+  studentId: "STU101",
+  name: "Rahul",
+  progress: 75.5,
+  courseLevel: "Intermediate"
+})
+
+🔹 O/P
+
+{ acknowledged: true, insertedId: ObjectId("...") }
+
+🔹 Invalid Insert
+
+db.enrollments.insertOne({
+  studentId: "101",
+  name: "A",
+  progress: 150,
+  courseLevel: "Expert"
+})
+
+🔹 O/P
+
+MongoServerError: Document failed validation
+
+🔹 Result
+Advanced validation ensures correct student enrollment data and prevents invalid entries.
+
+ EXPERIMENT – 4
+(Modify Validation on Existing Collection)
+
+🔹 Aim
+To add validation rules to an existing collection.
+
+🔹 Queries
+
+db.createCollection("students")
+
+db.runCommand({
+  collMod: "students",
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["studentId", "name", "age"],
+      properties: {
+        studentId: {
+          bsonType: "string",
+          pattern: "^STU[0-9]{3}$"
+        },
+        name: {
+          bsonType: "string",
+          minLength: 3
+        },
+        age: {
+          bsonType: "int",
+          minimum: 16
+        }
+      }
+    }
+  },
+  validationLevel: "moderate"
+})
+
+🔹 O/P
+
+{ ok: 1 }
+
+🔹 Result
+Validation rules were successfully added to the existing collection.
+
+ EXPERIMENT – 5
+(View & Verify Validation Rules)
+
+🔹 Aim
+To view validation rules applied to a collection.
+
+🔹 Query
+
+db.getCollectionInfos({ name: "enrollments" })
+
+🔹 O/P
+
+Displays:
+
+required fields
+enum values
+pattern rules
+validation settings
+
+🔹 Result
+The validation rules applied to the collection were successfully viewed and verified.
 
